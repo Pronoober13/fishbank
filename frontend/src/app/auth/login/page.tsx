@@ -4,9 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { authApi } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,8 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res: any = await authApi.login(form);
-      localStorage.setItem('token', res.accessToken);
-      localStorage.setItem('user', JSON.stringify(res.user));
+      login(res.accessToken, res.user);
       router.push('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Login gagal');

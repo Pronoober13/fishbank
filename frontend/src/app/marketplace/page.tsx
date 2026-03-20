@@ -11,6 +11,7 @@ interface Product {
   stock: number;
   condition: string;
   images: string[];
+  imageUrls: string[];
   seller: { fullName: string; city: string };
   fishSpecies: { commonName: string } | null;
 }
@@ -75,9 +76,13 @@ export default function MarketplacePage() {
           {products.map((p) => (
             <Link key={p.id} href={`/marketplace/${p.id}`}
               className="group bg-white rounded-2xl border border-slate-100 overflow-hidden card-hover block">
-              {/* Image placeholder */}
+              {/* Product image */}
               <div className="h-48 bg-gradient-to-br from-ocean-100 via-teal-50 to-ocean-50 flex items-center justify-center relative overflow-hidden">
-                <div className="text-6xl group-hover:scale-110 transition-transform duration-300">🐠</div>
+                {(p.imageUrls?.[0] || p.images?.[0]) ? (
+                  <img src={p.imageUrls?.[0] || p.images?.[0]} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                ) : (
+                  <div className="text-6xl group-hover:scale-110 transition-transform duration-300">🐠</div>
+                )}
                 {p.condition && (
                   <span className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm text-ocean-700 text-xs font-semibold px-2.5 py-1 rounded-full border border-ocean-100">
                     {p.condition}

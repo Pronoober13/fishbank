@@ -8,6 +8,7 @@ frontend/node_modules
 
 # build output
 backend/dist
+backend/uploads
 /build
 /.next/
 /out/

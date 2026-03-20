@@ -2,16 +2,40 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
+import { chatApi } from '@/lib/api';
 
 export default function Navbar() {
+  const router = useRouter();
+  const { user, token, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!token) { setUnread(0); return; }
+    const fetchUnread = async () => {
+      try {
+        const res: any = await chatApi.getUnreadCount(token);
+        setUnread(res.unreadCount || 0);
+      } catch { /* ignore */ }
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 15000);
+    return () => clearInterval(interval);
+  }, [token]);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/');
+  };
 
   return (
     <nav className={`sticky top-0 z-50 transition-all duration-300 ${
@@ -40,12 +64,33 @@ export default function Navbar() {
               Marketplace
             </Link>
             <div className="w-px h-6 bg-white/20 mx-2" />
-            <Link href="/auth/login" className="px-5 py-2 rounded-lg text-white border border-white/25 hover:bg-white/10 transition-all duration-200 text-sm font-medium">
-              Masuk
-            </Link>
-            <Link href="/auth/register" className="px-5 py-2 rounded-lg bg-gradient-to-r from-ocean-500 to-teal-500 text-white hover:from-ocean-400 hover:to-teal-400 transition-all duration-200 text-sm font-semibold shadow-md shadow-ocean-500/25">
-              Daftar
-            </Link>
+            {user ? (
+              <>
+                <Link href="/chat" className="relative px-4 py-2 rounded-lg text-ocean-200 hover:text-white hover:bg-white/10 transition-all duration-200 text-sm font-medium">
+                  Chat
+                  {unread > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-coral-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unread > 9 ? '9+' : unread}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/dashboard" className="px-4 py-2 rounded-lg text-ocean-200 hover:text-white hover:bg-white/10 transition-all duration-200 text-sm font-medium">
+                  Dashboard
+                </Link>
+                <button onClick={handleLogout} className="px-5 py-2 rounded-lg text-white border border-white/25 hover:bg-white/10 transition-all duration-200 text-sm font-medium">
+                  Keluar
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" className="px-5 py-2 rounded-lg text-white border border-white/25 hover:bg-white/10 transition-all duration-200 text-sm font-medium">
+                  Masuk
+                </Link>
+                <Link href="/auth/register" className="px-5 py-2 rounded-lg bg-gradient-to-r from-ocean-500 to-teal-500 text-white hover:from-ocean-400 hover:to-teal-400 transition-all duration-200 text-sm font-semibold shadow-md shadow-ocean-500/25">
+                  Daftar
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -70,12 +115,33 @@ export default function Navbar() {
               Marketplace
             </Link>
             <div className="h-px bg-white/10 my-2" />
-            <Link href="/auth/login" className="block px-4 py-2.5 rounded-lg text-white hover:bg-white/10 transition" onClick={() => setIsMenuOpen(false)}>
-              Masuk
-            </Link>
-            <Link href="/auth/register" className="block px-4 py-2.5 rounded-lg bg-gradient-to-r from-ocean-500 to-teal-500 text-white text-center font-medium" onClick={() => setIsMenuOpen(false)}>
-              Daftar Sekarang
-            </Link>
+            {user ? (
+              <>
+                <Link href="/chat" className="flex items-center justify-between px-4 py-2.5 rounded-lg text-ocean-200 hover:text-white hover:bg-white/10 transition" onClick={() => setIsMenuOpen(false)}>
+                  Chat
+                  {unread > 0 && (
+                    <span className="w-5 h-5 bg-coral-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {unread > 9 ? '9+' : unread}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/dashboard" className="block px-4 py-2.5 rounded-lg text-ocean-200 hover:text-white hover:bg-white/10 transition" onClick={() => setIsMenuOpen(false)}>
+                  Dashboard
+                </Link>
+                <button onClick={() => { setIsMenuOpen(false); handleLogout(); }} className="block w-full text-left px-4 py-2.5 rounded-lg text-white hover:bg-white/10 transition">
+                  Keluar
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/auth/login" className="block px-4 py-2.5 rounded-lg text-white hover:bg-white/10 transition" onClick={() => setIsMenuOpen(false)}>
+                  Masuk
+                </Link>
+                <Link href="/auth/register" className="block px-4 py-2.5 rounded-lg bg-gradient-to-r from-ocean-500 to-teal-500 text-white text-center font-medium" onClick={() => setIsMenuOpen(false)}>
+                  Daftar Sekarang
+                </Link>
+              </>
+            )}
           </div>
         )}
       </div>

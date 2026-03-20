@@ -7,6 +7,10 @@ import { FishService } from '../fish/fish.service';
 import { CreateProductDto, UpdateProductDto, SearchProductDto } from './dto/product.dto';
 import { ProductStatus, SellerVerificationStatus } from '../common/enums';
 import { User } from '../entities/user.entity';
+import { RedisCacheService } from '../cache/redis-cache.service';
+
+const PRODUCT_DETAIL_TTL = 1800;  // 30 min
+const PRODUCT_LIST_TTL = 600;     // 10 min
 
 @Injectable()
 export class ProductsService {
@@ -15,6 +19,7 @@ export class ProductsService {
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(AuditLog) private auditLogRepository: Repository<AuditLog>,
     private fishService: FishService,
+    private cache: RedisCacheService,
   ) {}
 
   async create(sellerId: string, dto: CreateProductDto) {
@@ -57,10 +62,16 @@ export class ProductsService {
     }
 
     const product = this.productRepository.create({ ...dto, sellerId, status: ProductStatus.PENDING_REVIEW });
-    return this.productRepository.save(product);
+    const saved = await this.productRepository.save(product);
+    await this.cache.invalidatePattern('product:list:*');
+    return saved;
   }
 
   async findAll(query: SearchProductDto) {
+    const cacheKey = `product:list:${JSON.stringify(query)}`;
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
     const page = query.page || 1;
     const limit = query.limit || 20;
     const qb = this.productRepository.createQueryBuilder('p')
@@ -85,16 +96,22 @@ export class ProductsService {
       'seller.id', 'seller.fullName', 'seller.shopName', 'seller.city', 'seller.province', 'seller.averageRating']);
 
     const [data, total] = await qb.skip((page - 1) * limit).take(limit).getManyAndCount();
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    const result = { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    await this.cache.set(cacheKey, result, PRODUCT_LIST_TTL);
+    return result;
   }
 
   async findOne(id: string) {
+    const cacheKey = `product:detail:${id}`;
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
     const product = await this.productRepository.findOne({
       where: { id }, relations: ['fishSpecies', 'seller', 'reviews'],
     });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
-    // Increment view count
     await this.productRepository.increment({ id }, 'viewCount', 1);
+    await this.cache.set(cacheKey, product, PRODUCT_DETAIL_TTL);
     return product;
   }
 
@@ -102,6 +119,8 @@ export class ProductsService {
     const product = await this.productRepository.findOne({ where: { id, sellerId } });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
     await this.productRepository.update(id, dto);
+    await this.cache.del(`product:detail:${id}`);
+    await this.cache.invalidatePattern('product:list:*');
     return this.findOne(id);
   }
 
@@ -109,6 +128,8 @@ export class ProductsService {
     const product = await this.productRepository.findOne({ where: { id, sellerId } });
     if (!product) throw new NotFoundException('Produk tidak ditemukan');
     await this.productRepository.update(id, { status: ProductStatus.DELETED });
+    await this.cache.del(`product:detail:${id}`);
+    await this.cache.invalidatePattern('product:list:*');
     return { message: 'Produk berhasil dihapus' };
   }
 

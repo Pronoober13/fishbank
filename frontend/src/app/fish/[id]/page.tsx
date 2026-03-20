@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { fishApi } from '@/lib/api';
@@ -28,6 +28,8 @@ interface FishDetail {
   iucnStatus: string;
   protectionNote: string | null;
 }
+
+const ProvinceMap = lazy(() => import('@/components/ProvinceMap'));
 
 export default function FishDetailPage() {
   const params = useParams();
@@ -146,9 +148,16 @@ export default function FishDetailPage() {
             <div className="mb-8">
               <h2 className="text-xl font-bold text-ocean-950 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center text-sm">📍</span>
-                Distribusi
+                Peta Distribusi
               </h2>
-              <div className="flex flex-wrap gap-2">
+              <Suspense fallback={
+                <div className="w-full h-64 md:h-80 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center">
+                  <p className="text-slate-400 text-sm">Memuat peta...</p>
+                </div>
+              }>
+                <ProvinceMap provinces={fish.distributionProvinces} />
+              </Suspense>
+              <div className="flex flex-wrap gap-2 mt-4">
                 {fish.distributionProvinces.map((p) => (
                   <span key={p} className="bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-full text-sm font-medium border border-emerald-200">{p}</span>
                 ))}

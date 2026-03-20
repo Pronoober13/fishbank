@@ -21,6 +21,25 @@ async function apiFetch<T>(endpoint: string, options: FetchOptions = {}): Promis
   return res.json();
 }
 
+// Upload
+export const uploadApi = {
+  upload: async (files: File[], token: string): Promise<string[]> => {
+    const formData = new FormData();
+    files.forEach((f) => formData.append('files', f));
+    const res = await fetch(`${API_URL}/api/upload`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: 'Upload gagal' }));
+      throw new Error(err.message);
+    }
+    const data = await res.json();
+    return data.urls;
+  },
+};
+
 // Auth
 export const authApi = {
   register: (data: { email: string; password: string; fullName: string; phone?: string }) =>
@@ -71,6 +90,22 @@ export const userApi = {
   updateProfile: (data: any, token: string) =>
     apiFetch('/api/users/profile', { method: 'PUT', body: JSON.stringify(data), token }),
   getWishlist: (token: string) => apiFetch('/api/users/wishlist', { token }),
+};
+
+// Payment
+export const paymentApi = {
+  createTransaction: (orderId: string, token: string) =>
+    apiFetch<{ snapToken: string; redirectUrl: string }>(`/api/payment/create/${orderId}`, { method: 'POST', token }),
+  getClientKey: () =>
+    apiFetch<{ clientKey: string }>('/api/payment/client-key'),
+};
+
+// Reviews
+export const reviewApi = {
+  create: (data: { orderId: string; productId: string; rating: number; comment?: string }, token: string) =>
+    apiFetch('/api/reviews', { method: 'POST', body: JSON.stringify(data), token }),
+  getProductReviews: (productId: string) =>
+    apiFetch(`/api/reviews/product/${productId}`),
 };
 
 // Chat

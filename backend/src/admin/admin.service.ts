@@ -7,6 +7,9 @@ import { Order } from '../entities/order.entity';
 import { Report } from '../entities/report.entity';
 import { AuditLog } from '../entities/audit-log.entity';
 import { SellerVerificationStatus, ProductStatus, ReportStatus } from '../common/enums';
+import { RedisCacheService } from '../cache/redis-cache.service';
+
+const DASHBOARD_TTL = 300; // 5 min
 
 @Injectable()
 export class AdminService {
@@ -16,9 +19,14 @@ export class AdminService {
     @InjectRepository(Order) private orderRepository: Repository<Order>,
     @InjectRepository(Report) private reportRepository: Repository<Report>,
     @InjectRepository(AuditLog) private auditLogRepository: Repository<AuditLog>,
+    private cache: RedisCacheService,
   ) {}
 
   async getDashboard() {
+    const cacheKey = 'admin:dashboard';
+    const cached = await this.cache.get(cacheKey);
+    if (cached) return cached;
+
     const [totalUsers, totalSellers, totalProducts, totalOrders] = await Promise.all([
       this.userRepository.count(),
       this.userRepository.count({ where: { sellerVerificationStatus: SellerVerificationStatus.APPROVED } }),
@@ -38,13 +46,15 @@ export class AdminService {
       .where('o.status = :status', { status: 'completed' })
       .getRawOne();
 
-    return {
+    const result = {
       totalUsers, totalSellers, totalProducts, totalOrders,
       pendingProducts, pendingSellers, pendingReports,
       totalGMV: revenueResult?.totalGMV || 0,
       totalPlatformFee: revenueResult?.totalFee || 0,
       completedOrders: revenueResult?.completedOrders || 0,
     };
+    await this.cache.set(cacheKey, result, DASHBOARD_TTL);
+    return result;
   }
 
   // Seller verification management
@@ -58,6 +68,7 @@ export class AdminService {
   async approveSeller(userId: string, adminId: string) {
     await this.userRepository.update(userId, { sellerVerificationStatus: SellerVerificationStatus.APPROVED });
     await this.logAction(adminId, 'APPROVE_SELLER', 'user', userId);
+    await this.cache.del('admin:dashboard');
     return { message: 'Seller berhasil diverifikasi' };
   }
 
@@ -79,6 +90,8 @@ export class AdminService {
   async approveProduct(productId: string, adminId: string) {
     await this.productRepository.update(productId, { status: ProductStatus.APPROVED });
     await this.logAction(adminId, 'APPROVE_PRODUCT', 'product', productId);
+    await this.cache.del('admin:dashboard');
+    await this.cache.invalidatePattern('product:*');
     return { message: 'Produk berhasil disetujui' };
   }
 
