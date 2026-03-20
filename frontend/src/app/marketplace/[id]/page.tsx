@@ -62,57 +62,102 @@ export default function ProductDetailPage() {
 
   const formatPrice = (price: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
 
-  if (loading) return <div className="text-center py-20 text-gray-500">Memuat produk...</div>;
-  if (!product) return <div className="text-center py-20 text-gray-500">Produk tidak ditemukan</div>;
+  if (loading) return (
+    <div className="text-center py-20">
+      <div className="inline-block w-8 h-8 border-3 border-ocean-200 border-t-ocean-600 rounded-full animate-spin mb-4" />
+      <p className="text-slate-400">Memuat produk...</p>
+    </div>
+  );
+  if (!product) return (
+    <div className="text-center py-20">
+      <div className="text-5xl mb-4">🛒</div>
+      <p className="text-slate-400 text-lg">Produk tidak ditemukan</p>
+    </div>
+  );
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8">
-      <Link href="/marketplace" className="text-blue-600 hover:underline mb-4 inline-block">← Kembali ke Marketplace</Link>
+    <div className="max-w-5xl mx-auto px-4 py-10">
+      <Link href="/marketplace" className="inline-flex items-center gap-2 text-ocean-600 hover:text-ocean-800 transition mb-6 text-sm font-medium group">
+        <svg className="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+        Kembali ke Marketplace
+      </Link>
 
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="md:flex">
-          <div className="md:w-1/2 h-80 bg-gradient-to-br from-blue-100 to-cyan-100 flex items-center justify-center text-8xl">
-            🐠
+          {/* Image */}
+          <div className="md:w-1/2 h-80 md:h-auto bg-gradient-to-br from-ocean-100 via-teal-50 to-ocean-50 flex items-center justify-center relative">
+            <div className="text-8xl animate-float">🐠</div>
+            {product.condition && (
+              <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-ocean-700 text-xs font-semibold px-3 py-1.5 rounded-full border border-ocean-100">
+                {product.condition}
+              </span>
+            )}
           </div>
-          <div className="md:w-1/2 p-6">
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">{product.title}</h1>
+
+          {/* Info */}
+          <div className="md:w-1/2 p-8">
+            <h1 className="text-2xl font-bold text-ocean-950 mb-1">{product.title}</h1>
             {product.fishSpecies && (
-              <Link href={`/fish/${product.fishSpecies.id}`} className="text-sm text-blue-600 hover:underline">
-                {product.fishSpecies.commonName} ({product.fishSpecies.scientificName})
+              <Link href={`/fish/${product.fishSpecies.id}`} className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-800 transition font-medium">
+                {product.fishSpecies.commonName}
+                <span className="text-slate-400 italic">({product.fishSpecies.scientificName})</span>
               </Link>
             )}
-            <p className="text-3xl font-bold text-blue-700 mt-3">{formatPrice(product.price)}</p>
+            <p className="text-3xl font-extrabold text-ocean-700 mt-4">{formatPrice(product.price)}</p>
 
-            <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-              <div className="bg-gray-50 p-2 rounded"><span className="text-gray-500">Kondisi:</span> <span className="font-medium">{product.condition}</span></div>
-              <div className="bg-gray-50 p-2 rounded"><span className="text-gray-500">Stok:</span> <span className="font-medium">{product.stock}</span></div>
-              {product.sizeCm > 0 && <div className="bg-gray-50 p-2 rounded"><span className="text-gray-500">Ukuran:</span> <span className="font-medium">{product.sizeCm} cm</span></div>}
-              {product.ageMths > 0 && <div className="bg-gray-50 p-2 rounded"><span className="text-gray-500">Umur:</span> <span className="font-medium">{product.ageMths} bulan</span></div>}
+            <div className="grid grid-cols-2 gap-3 mt-5 text-sm">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-xs block">Kondisi</span>
+                <span className="font-semibold text-ocean-950">{product.condition}</span>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span className="text-slate-400 text-xs block">Stok</span>
+                <span className="font-semibold text-ocean-950">{product.stock}</span>
+              </div>
+              {product.sizeCm > 0 && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-xs block">Ukuran</span>
+                  <span className="font-semibold text-ocean-950">{product.sizeCm} cm</span>
+                </div>
+              )}
+              {product.ageMths > 0 && (
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 text-xs block">Umur</span>
+                  <span className="font-semibold text-ocean-950">{product.ageMths} bulan</span>
+                </div>
+              )}
             </div>
 
-            <div className="mt-4 flex items-center gap-3">
-              <label className="text-sm text-gray-600">Jumlah:</label>
+            <div className="mt-5 flex items-center gap-3">
+              <label className="text-sm text-slate-500 font-medium">Jumlah:</label>
               <input type="number" min={1} max={product.stock} value={qty} onChange={(e) => setQty(Number(e.target.value))}
-                className="w-20 px-2 py-1 border rounded" />
+                className="w-20 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-ocean-400 focus:border-transparent outline-none text-sm" />
             </div>
 
             <button onClick={handleOrder} disabled={ordering || product.stock === 0}
-              className="w-full mt-4 bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition disabled:opacity-50">
-              {ordering ? 'Memproses...' : product.stock === 0 ? 'Stok Habis' : '🛒 Beli Sekarang'}
+              className="w-full mt-5 bg-gradient-to-r from-ocean-600 to-teal-500 text-white py-3.5 rounded-xl font-semibold hover:from-ocean-500 hover:to-teal-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-ocean-500/20">
+              {ordering ? 'Memproses...' : product.stock === 0 ? 'Stok Habis' : 'Beli Sekarang'}
             </button>
 
-            <div className="mt-4 text-sm text-gray-500">
-              <p>📍 Seller: {product.seller?.fullName} — {product.seller?.city}, {product.seller?.province}</p>
+            {/* Seller info */}
+            <div className="mt-5 p-4 bg-ocean-50 rounded-xl border border-ocean-100 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ocean-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm">
+                {product.seller?.fullName?.charAt(0) || 'S'}
+              </div>
+              <div>
+                <p className="font-semibold text-ocean-950 text-sm">{product.seller?.fullName}</p>
+                <p className="text-xs text-slate-400">{product.seller?.city}, {product.seller?.province}</p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="p-6 border-t">
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Deskripsi</h2>
-          <p className="text-gray-700 whitespace-pre-wrap">{product.description}</p>
+        {/* Description */}
+        <div className="p-8 border-t border-slate-100">
+          <h2 className="text-xl font-bold text-ocean-950 mb-3">Deskripsi</h2>
+          <p className="text-slate-600 whitespace-pre-wrap leading-relaxed">{product.description}</p>
         </div>
       </div>
     </div>
   );
 }
-

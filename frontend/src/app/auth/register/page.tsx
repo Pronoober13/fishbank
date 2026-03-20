@@ -47,41 +47,52 @@ export default function RegisterPage() {
   ];
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center text-gray-800 mb-6">🐠 Daftar FishBank</h1>
-
-        {error && (
-          <div className="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">{error}</div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {fields.map((f) => (
-            <div key={f.name}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
-              <input
-                type={f.type} required={f.required}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder={f.placeholder}
-                value={form[f.name as keyof typeof form]}
-                onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
-              />
+    <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md">
+        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-8">
+          {/* Logo */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-ocean-400 to-teal-400 text-2xl shadow-lg shadow-ocean-400/20 mb-4">
+              🐟
             </div>
-          ))}
-          <button
-            type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-50"
-          >
-            {loading ? 'Memproses...' : 'Daftar'}
-          </button>
-        </form>
+            <h1 className="text-2xl font-bold text-ocean-950">Daftar FishBank</h1>
+            <p className="text-slate-400 text-sm mt-1">Buat akun gratis dan mulai jelajahi</p>
+          </div>
 
-        <p className="mt-4 text-center text-sm text-gray-600">
-          Sudah punya akun?{' '}
-          <Link href="/auth/login" className="text-blue-600 font-medium hover:underline">Masuk</Link>
-        </p>
+          {error && (
+            <div className="bg-rose-50 text-rose-600 p-3.5 rounded-xl mb-5 text-sm border border-rose-200 flex items-center gap-2">
+              <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {fields.map((f) => (
+              <div key={f.name}>
+                <label className="block text-sm font-semibold text-ocean-950 mb-1.5">{f.label}</label>
+                <input
+                  type={f.type} required={f.required}
+                  className="w-full px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-ocean-400 focus:border-transparent outline-none transition text-sm"
+                  placeholder={f.placeholder}
+                  value={form[f.name as keyof typeof form]}
+                  onChange={(e) => setForm({ ...form, [f.name]: e.target.value })}
+                />
+              </div>
+            ))}
+            <button
+              type="submit" disabled={loading}
+              className="w-full bg-gradient-to-r from-ocean-600 to-teal-500 text-white py-3 rounded-xl font-semibold hover:from-ocean-500 hover:to-teal-400 transition-all disabled:opacity-50 shadow-lg shadow-ocean-500/20"
+            >
+              {loading ? 'Memproses...' : 'Daftar Sekarang'}
+            </button>
+          </form>
+
+          <p className="mt-6 text-center text-sm text-slate-500">
+            Sudah punya akun?{' '}
+            <Link href="/auth/login" className="text-ocean-600 font-semibold hover:text-ocean-800 transition">Masuk</Link>
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-

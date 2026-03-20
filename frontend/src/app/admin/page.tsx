@@ -88,15 +88,20 @@ export default function AdminPage() {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">🔧 Admin Panel</h1>
+    <div className="max-w-7xl mx-auto px-4 py-10">
+      {/* Header */}
+      <div className="mb-8">
+        <span className="inline-block bg-ocean-100 text-ocean-700 text-sm font-semibold px-4 py-1.5 rounded-full mb-3">Admin</span>
+        <h1 className="text-3xl font-bold text-ocean-950">Admin Panel</h1>
+        <p className="text-slate-400 mt-1">Kelola platform FishBank</p>
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 mb-6 border-b">
-        {(['overview', 'sellers', 'products'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`pb-2 px-1 font-medium ${tab === t ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500'}`}>
-            {t === 'overview' ? '📊 Overview' : t === 'sellers' ? '🏪 Sellers' : '📦 Produk'}
+      <div className="flex gap-1 mb-8 bg-slate-100 rounded-xl p-1 w-fit">
+        {([['overview', 'Overview'], ['sellers', 'Sellers'], ['products', 'Produk']] as const).map(([key, label]) => (
+          <button key={key} onClick={() => setTab(key as 'overview' | 'sellers' | 'products')}
+            className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === key ? 'bg-white text-ocean-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+            {label}
           </button>
         ))}
       </div>
@@ -104,10 +109,12 @@ export default function AdminPage() {
       {tab === 'overview' && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s) => (
-            <div key={s.label} className="bg-white rounded-xl shadow p-4 text-center">
-              <p className="text-2xl mb-1">{s.icon}</p>
-              <p className="text-2xl font-bold text-gray-800">{s.value}</p>
-              <p className="text-sm text-gray-500">{s.label}</p>
+            <div key={s.label} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 card-hover">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-ocean-50 flex items-center justify-center text-lg">{s.icon}</div>
+              </div>
+              <p className="text-2xl font-extrabold text-ocean-950">{s.value}</p>
+              <p className="text-xs text-slate-400 font-medium mt-1">{s.label}</p>
             </div>
           ))}
         </div>
@@ -116,16 +123,24 @@ export default function AdminPage() {
       {tab === 'sellers' && (
         <div className="space-y-4">
           {pendingSellers.length === 0 ? (
-            <p className="text-center py-10 text-gray-500">Tidak ada seller menunggu verifikasi</p>
+            <div className="text-center py-16">
+              <div className="text-5xl mb-4">🏪</div>
+              <p className="text-slate-400">Tidak ada seller menunggu verifikasi</p>
+            </div>
           ) : pendingSellers.map((s) => (
-            <div key={s.id} className="bg-white rounded-xl shadow p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold">{s.fullName}</p>
-                <p className="text-sm text-gray-500">{s.email}</p>
+            <div key={s.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center justify-between hover:border-ocean-200 transition">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-ocean-400 to-teal-400 flex items-center justify-center text-white font-bold text-sm">
+                  {s.fullName?.charAt(0) || '?'}
+                </div>
+                <div>
+                  <p className="font-bold text-ocean-950">{s.fullName}</p>
+                  <p className="text-sm text-slate-400">{s.email}</p>
+                </div>
               </div>
               <button onClick={() => handleApproveSeller(s.id)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                ✅ Approve
+                className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-5 py-2.5 rounded-xl hover:from-emerald-400 hover:to-green-400 transition font-medium text-sm shadow-md shadow-emerald-500/20">
+                Approve
               </button>
             </div>
           ))}
@@ -135,16 +150,19 @@ export default function AdminPage() {
       {tab === 'products' && (
         <div className="space-y-4">
           {pendingProducts.length === 0 ? (
-            <p className="text-center py-10 text-gray-500">Tidak ada produk menunggu approval</p>
+            <div className="text-center py-16">
+              <div className="text-5xl mb-4">📦</div>
+              <p className="text-slate-400">Tidak ada produk menunggu approval</p>
+            </div>
           ) : pendingProducts.map((p) => (
-            <div key={p.id} className="bg-white rounded-xl shadow p-4 flex items-center justify-between">
+            <div key={p.id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 flex items-center justify-between hover:border-ocean-200 transition">
               <div>
-                <p className="font-semibold">{p.title}</p>
-                <p className="text-sm text-gray-500">{p.seller?.fullName} — Rp {p.price?.toLocaleString()}</p>
+                <p className="font-bold text-ocean-950">{p.title}</p>
+                <p className="text-sm text-slate-400">{p.seller?.fullName} — Rp {p.price?.toLocaleString()}</p>
               </div>
               <button onClick={() => handleApproveProduct(p.id)}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-                ✅ Approve
+                className="bg-gradient-to-r from-emerald-500 to-green-500 text-white px-5 py-2.5 rounded-xl hover:from-emerald-400 hover:to-green-400 transition font-medium text-sm shadow-md shadow-emerald-500/20">
+                Approve
               </button>
             </div>
           ))}
@@ -153,4 +171,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
